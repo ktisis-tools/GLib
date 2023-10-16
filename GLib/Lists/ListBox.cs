@@ -34,8 +34,12 @@ public class ListBox<T> {
 		=> this.Draw(list, list.Count, out selected);
 
 	public bool Draw(IEnumerable<T> enumerable, int count, out T? selected) {
+        // Clamp active index to valid range
+		this.ActiveIndex = Math.Clamp(this.ActiveIndex, -1, count - 1);
+		
+		// Draw ListBox & return result
 		using var box = ImRaii.ListBox(this._label);
-        return DrawInner(enumerable, count, out selected);
+		return DrawInner(enumerable, count, out selected);
 	}
 
 	private bool DrawInner(IEnumerable<T> enumerable, int count, out T? selected) {
