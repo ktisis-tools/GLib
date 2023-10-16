@@ -8,17 +8,43 @@ using GLib.Utility;
 
 namespace GLib.Lists;
 
+/// <summary>
+/// An implementation of ImGui's <c>ListBox</c> utilizing <see cref="UiCulling"/> for improved performance.
+/// </summary>
+/// <typeparam name="T">The type representing each item in a list.</typeparam>
 public class ListBox<T> {
+	/// <summary>
+	/// Invoked when drawing each item in a <see cref="ListBox{T}"/>.
+	/// </summary>
+	/// <param name="item">The item to draw.</param>
+	/// <param name="isFocused">A value indicating whether this item is currently focused.</param>
+	/// <returns>A value indicating whether the item was activated in this draw call.</returns>
+	public delegate bool DrawItemDelegate(T item, bool isFocused);
+	
+	// Properties
+	
 	private readonly string _label;
 
-	private readonly Func<T, bool, bool> _drawItem;
+	private readonly DrawItemDelegate _drawItem;
 	private readonly int _itemHeight;
 
+	/// <summary>
+	/// The index of the current focus target.
+	/// </summary>
 	protected int ActiveIndex = -1;
 	
+	/// <summary>
+	/// Constructs a new instance of the <see cref="ListBox{T}"/> class.
+	/// </summary>
+	/// <param name="label">The label displayed next to the ListBox frame, which uniquely identifies it.</param>
+	/// <param name="drawItem">See <see cref="DrawItemDelegate"/>.</param>
+	/// <param name="itemHeight">
+	/// The height of each item to draw.
+	/// If set to <c>-1</c>, the return value of <c>ImGui.GetFrameHeight()</c> will be used.
+	/// </param>
 	public ListBox(
 		string label,
-		Func<T, bool, bool> drawItem,
+		DrawItemDelegate drawItem,
 		int itemHeight = -1
 	) {
 		this._label = label;
@@ -30,9 +56,22 @@ public class ListBox<T> {
 
 	private float ItemHeight => this._itemHeight != -1 ? this._itemHeight : ImGui.GetFrameHeight();
 
-	public void Draw(List<T> list, out T? selected)
+	/// <summary>
+	/// Draws an ImGui ListBox containing items provided by an enumerable.
+	/// </summary>
+	/// <param name="list">A <see cref="List{T}"/> containing items to draw.</param>
+	/// <param name="selected">The selected item if applicable, otherwise null by default.</param>
+	/// <returns>A value indicating whether a selection was made by the user.</returns>
+	public bool Draw(List<T> list, out T? selected)
 		=> this.Draw(list, list.Count, out selected);
-
+	
+	/// <summary>
+	/// Draws an ImGui ListBox containing items provided by an enumerable.
+	/// </summary>
+	/// <param name="enumerable">An <see cref="IEnumerable{T}"/> containing items to draw.</param>
+	/// <param name="count">The number of items to account for, determining the maximum scroll height.</param>
+	/// <param name="selected">The selected item if applicable, otherwise null by default.</param>
+	/// <returns>A value indicating whether a selection was made by the user.</returns>
 	public bool Draw(IEnumerable<T> enumerable, int count, out T? selected) {
 		// Clamp active index to valid range
 		this.ActiveIndex = Math.Clamp(this.ActiveIndex, -1, count - 1);
@@ -42,6 +81,9 @@ public class ListBox<T> {
 		return this.DrawInner(enumerable, count, out selected);
 	}
 
+	/// <summary>
+	/// Draws the inner contents of the ImGui <c>ListBox</c> frame.
+	/// </summary>
 	private bool DrawInner(IEnumerable<T> enumerable, int count, out T? selected) {
 		selected = default;
 		
@@ -100,6 +142,10 @@ public class ListBox<T> {
 		return isSelected;
 	}
 	
+	/// <summary>
+	/// Checks user input for up/down keys to choose a new focus target.
+	/// </summary>
+	/// <returns>The new active index if applicable, otherwise <c>-1</c> by default.</returns>
 	private int CalcTargetIndex() {
 		if (ImGui.IsKeyPressed(ImGuiKey.UpArrow))
 			return this.ActiveIndex - 1;
