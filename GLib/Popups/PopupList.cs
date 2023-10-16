@@ -19,7 +19,7 @@ public class PopupList<T> {
 		this._listBox = new ListBox<T>(label, drawItem);
 	}
 
-	public virtual void Open() {
+	public void Open() {
 		ImGui.OpenPopup(this._label);
 	}
 	

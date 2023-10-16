@@ -10,10 +10,10 @@ public static class UiCulling {
 		out float maxScroll,
 		out int start
 	) {
-        maxScroll = itemHeight * count;
+		maxScroll = itemHeight * count;
 		scroll = Math.Min(scroll, maxScroll);
 		
-        start = (int)Math.Floor(scroll / itemHeight);
+		start = (int)Math.Floor(scroll / itemHeight);
 		var displayCt = (int)Math.Floor(frameHeight / itemHeight);
 		displayCt = Math.Min(displayCt, count - start);
 		
