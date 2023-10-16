@@ -39,7 +39,7 @@ public class ListBox<T> {
 		
 		// Draw ListBox & return result
 		using var box = ImRaii.ListBox(this._label);
-		return DrawInner(enumerable, count, out selected);
+		return this.DrawInner(enumerable, count, out selected);
 	}
 
 	private bool DrawInner(IEnumerable<T> enumerable, int count, out T? selected) {
@@ -52,12 +52,11 @@ public class ListBox<T> {
 		
 		// Take keyboard input
 		
-		var target = CalcTargetIndex();
+		var target = this.CalcTargetIndex();
 		var isEnter = ImGui.IsKeyPressed(ImGuiKey.Enter);
 
-		if (target != -1) {
+		if (target != -1)
 			ImGui.SetScrollY(((target + 1) * itemHeight) - (frameHeight / 2));
-		}
 		
 		// Calculate bounds
 
