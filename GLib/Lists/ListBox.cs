@@ -26,7 +26,7 @@ public class ListBox<T> {
 	private readonly string _label;
 
 	private readonly DrawItemDelegate _drawItem;
-	private readonly int _itemHeight;
+	private readonly float _itemHeight;
 
 	/// <summary>
 	/// The index of the current focus target.
@@ -40,12 +40,12 @@ public class ListBox<T> {
 	/// <param name="drawItem">See <see cref="DrawItemDelegate"/>.</param>
 	/// <param name="itemHeight">
 	/// The height of each item to draw.
-	/// If set to <c>-1</c>, the return value of <c>ImGui.GetFrameHeight()</c> will be used.
+	/// If set to zero or lower, the return value of <c>ImGui.GetFrameHeight()</c> will be used.
 	/// </param>
 	public ListBox(
 		string label,
 		DrawItemDelegate drawItem,
-		int itemHeight = -1
+		float itemHeight = -1
 	) {
 		this._label = label;
 		this._drawItem = drawItem;
@@ -54,7 +54,7 @@ public class ListBox<T> {
 	
 	// Draw UI
 
-	private float ItemHeight => this._itemHeight != -1 ? this._itemHeight : ImGui.GetFrameHeight();
+	private float ItemHeight => this._itemHeight <= 0.0f ? ImGui.GetFrameHeight() : this._itemHeight;
 
 	/// <summary>
 	/// Draws an ImGui ListBox containing items provided by an enumerable.

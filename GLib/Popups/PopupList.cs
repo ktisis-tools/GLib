@@ -20,12 +20,17 @@ public class PopupList<T> {
 	/// </summary>
 	/// <param name="label">The label displayed next to the ListBox frame, which uniquely identifies it and the popup.</param>
 	/// <param name="drawItem">See <see cref="ListBox{T}.DrawItemDelegate"/>.</param>
+	/// <param name="itemHeight">
+	/// The height of each item to draw.
+	/// If set to zero or lower, the return value of <c>ImGui.GetFrameHeight()</c> will be used.
+	/// </param>
 	public PopupList(
 		string label,
-		ListBox<T>.DrawItemDelegate drawItem
+		ListBox<T>.DrawItemDelegate drawItem,
+		float itemHeight = -1
 	) {
 		this._label = label;
-		this._listBox = new ListBox<T>(label, drawItem);
+		this._listBox = new ListBox<T>(label, drawItem, itemHeight);
 	}
 
 	/// <summary>
