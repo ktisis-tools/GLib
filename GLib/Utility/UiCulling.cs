@@ -25,6 +25,8 @@ public static class UiCulling {
 		out float maxScroll,
 		out int start
 	) {
+		count++;
+		
 		maxScroll = itemHeight * count;
 		scroll = Math.Min(scroll, maxScroll);
 
@@ -32,7 +34,7 @@ public static class UiCulling {
 		var displayCt = (int)Math.Floor(frameHeight / itemHeight);
 		displayCt = Math.Min(displayCt, count - start);
 
-		return enumerator.Skip(start).Take(displayCt + 1);
+		return enumerator.Skip(start).Take(displayCt);
 	}
 
 	/// <summary>

@@ -39,8 +39,7 @@ public class ListBox<T> {
 	/// <param name="label">The label displayed next to the ListBox frame, which uniquely identifies it.</param>
 	/// <param name="drawItem">See <see cref="DrawItemDelegate"/>.</param>
 	/// <param name="itemHeight">
-	/// The height of each item to draw.
-	/// If set to zero or lower, the return value of <c>ImGui.GetFrameHeight()</c> will be used.
+	/// The height of each item to draw, calculated automatically if value is set to zero or lower.
 	/// </param>
 	public ListBox(
 		string label,
@@ -54,16 +53,17 @@ public class ListBox<T> {
 	
 	// Draw UI
 
-	private float ItemHeight => this._itemHeight <= 0.0f ? ImGui.GetFrameHeight() : this._itemHeight;
+	private float ItemHeight => this._itemHeight <= 0.0f ? ImGui.GetTextLineHeight() : this._itemHeight;
 
 	/// <summary>
 	/// Draws an ImGui ListBox containing items provided by an enumerable.
 	/// </summary>
 	/// <param name="list">A <see cref="List{T}"/> containing items to draw.</param>
 	/// <param name="selected">The selected item if applicable, otherwise null by default.</param>
+	/// <param name="boxSize">Optional: A fixed size for the ListBox to draw in.</param>
 	/// <returns>A value indicating whether a selection was made by the user.</returns>
-	public bool Draw(List<T> list, out T? selected)
-		=> this.Draw(list, list.Count, out selected);
+	public bool Draw(List<T> list, out T? selected, Vector2? boxSize = null)
+		=> this.Draw(list, list.Count, out selected, boxSize);
 	
 	/// <summary>
 	/// Draws an ImGui ListBox containing items provided by an enumerable.
@@ -71,14 +71,22 @@ public class ListBox<T> {
 	/// <param name="enumerable">An <see cref="IEnumerable{T}"/> containing items to draw.</param>
 	/// <param name="count">The number of items to account for, determining the maximum scroll height.</param>
 	/// <param name="selected">The selected item if applicable, otherwise null by default.</param>
+	/// <param name="boxSize">Optional: A fixed size for the ListBox to draw in.</param>
 	/// <returns>A value indicating whether a selection was made by the user.</returns>
-	public bool Draw(IEnumerable<T> enumerable, int count, out T? selected) {
+	public bool Draw(
+		IEnumerable<T> enumerable,
+		int count,
+		out T? selected,
+		Vector2? boxSize = null
+	) {
+		selected = default;
+		
 		// Clamp active index to valid range
 		this.ActiveIndex = Math.Clamp(this.ActiveIndex, -1, count - 1);
 		
 		// Draw ListBox & return result
-		using var box = ImRaii.ListBox(this._label);
-		return this.DrawInner(enumerable, count, out selected);
+		using var box = ImRaii.ListBox(this._label, boxSize ?? Vector2.Zero);
+		return box.Success && this.DrawInner(enumerable, count, out selected);
 	}
 
 	/// <summary>
@@ -89,7 +97,7 @@ public class ListBox<T> {
 		
 		var isSelected = false;
 
-		var itemHeight = this.ItemHeight;
+		var itemHeight = this.ItemHeight + ImGui.GetStyle().ItemSpacing.Y;
 		var frameHeight = ImGui.GetWindowSize().Y;
 		
 		// Take keyboard input
@@ -121,7 +129,7 @@ public class ListBox<T> {
 		var index = start;
 		foreach (var item in enumerable) {
 			using var _ = new ImRaii.Id().Push(index);
-				
+			
 			var isFocus = index == this.ActiveIndex;
 			var activate = this._drawItem(item, isFocus);
 			activate |= index == target || isFocus && isEnter;
