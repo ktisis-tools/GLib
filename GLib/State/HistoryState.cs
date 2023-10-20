@@ -1,9 +1,9 @@
 namespace GLib.State; 
 
 /// <summary>
-/// A class that tracks the state of a history timeline with a cursor.
+/// A class that tracks the state of a history timeline using a cursor.
 /// </summary>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="T">The type to store in the timeline.</typeparam>
 public class HistoryState<T> {
 	private int Cursor;
 	private readonly List<T> Timeline = new();
@@ -46,14 +46,20 @@ public class HistoryState<T> {
 	}
 
 	/// <summary>
-	/// Adds a new entry to the history timeline if it doesn't already exist.
+	/// Adds a new entry to the history timeline while removing prior occurrences of it.
 	/// </summary>
 	/// <param name="entry">The entry to add.</param>
-	/// <returns>A value indicating whether the entry was added.</returns>
-	public bool AddUnique(T entry) {
-		var add = !this.Timeline.Contains(entry);
-		if (add) this.Add(entry);
-		return add;
+	public void AddUnique(T entry) {
+		const int IterMax = 100;
+		
+		var i = 0;
+		while (i++ < IterMax && this.Timeline.IndexOf(entry) is var index and >= 0) {
+			if (index < this.Cursor)
+				this.Cursor--;
+			this.Timeline.Remove(entry);
+		}
+		
+		this.Add(entry);
 	}
 
 	/// <summary>
@@ -89,6 +95,5 @@ public class HistoryState<T> {
 	/// <summary>
 	/// Returns the current timeline as an <see cref="IReadOnlyList{T}"/>.
 	/// </summary>
-	public IReadOnlyList<T> GetReadOnly()
-		=> this.Timeline.AsReadOnly();
+	public IReadOnlyList<T> GetReadOnly() => this.Timeline.AsReadOnly();
 }
