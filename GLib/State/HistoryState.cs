@@ -63,6 +63,17 @@ public class HistoryState<T> {
 	}
 
 	/// <summary>
+	/// Adds a new entry to the history timeline if it doesn't already exist.
+	/// </summary>
+	/// <param name="entry">The entry to add.</param>
+	/// <returns>A value indicating whether the entry was added.</returns>
+	public bool AddIfDistinct(T entry) {
+		var add = !this.Timeline.Contains(entry);
+		if (add) this.Add(entry);
+		return add;
+	}
+
+	/// <summary>
 	/// Decrements the cursor position.
 	/// </summary>
 	/// <returns>The head prior to decrementing the cursor.</returns>
