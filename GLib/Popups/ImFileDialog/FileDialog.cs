@@ -28,10 +28,9 @@ public partial class FileDialog {
 
 	private readonly HistoryState<string> PathHistory = new();
 	
-	/// <summary>
-	/// Event fired when a selection is confirmed by the user.
-	/// </summary>
-	public event FileDialogConfirmHandler? OnConfirmed;
+	// Events
+	
+	private event FileDialogConfirmHandler OnConfirmed;
 	
 	// State helpers
 	
@@ -42,27 +41,37 @@ public partial class FileDialog {
 	/// Constructs a new instance of the <see cref="FileDialog"/> class with default options.
 	/// </summary>
 	/// <param name="title">The title of the ImGui window.</param>
-	public FileDialog(string title) {
+	/// <param name="onConfirm">Event fired when a selection is confirmed by the user.</param>
+	public FileDialog(
+		string title,
+		FileDialogConfirmHandler onConfirm
+	) {
 		var options = new FileDialogOptions();
 		this.Title = title;
 		this.Options = options;
 		this.Locations = this.SetupLocations(options);
 		this.Filter = this.SetupFilters(options);
+		
+		this.OnConfirmed = onConfirm;
 	}
 	
 	/// <summary>
 	/// Constructs a new instance of the <see cref="FileDialog"/> class.
 	/// </summary>
 	/// <param name="title">The title of the ImGui window.</param>
+	/// <param name="onConfirm">Event fired when a selection is confirmed by the user.</param>
 	/// <param name="options">Options used to configure the file dialog.</param>
 	public FileDialog(
 		string title,
+		FileDialogConfirmHandler onConfirm,
 		FileDialogOptions options
 	) {
 		this.Title = title;
 		this.Options = options;
 		this.Locations = this.SetupLocations(options);
 		this.Filter = this.SetupFilters(options);
+
+		this.OnConfirmed = onConfirm;
 
 		this.IsOpenMode = options.Flags.HasFlag(FileDialogFlags.OpenMode);
 		this.IsFolderMode = options.Flags.HasFlag(FileDialogFlags.FolderMode);
