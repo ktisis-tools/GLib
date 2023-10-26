@@ -19,16 +19,17 @@ public partial class FileDialog {
 		public string? ActiveDirectory;
 		public int SelectedCount;
 		
-		public CancellationTokenSource? TokenSource;
+		
 		public List<Entry> AllEntries = new();
 		public readonly List<Entry> FilteredEntries = new();
+		public CancellationTokenSource? TokenSource;
 
 		public void Clear() {
 			this.SelectedCount = 0;
 
-			this.TokenSource = null;
 			this.AllEntries.Clear();
 			this.FilteredEntries.Clear();
+			this.TokenSource = null;
 		}
 	}
 	
@@ -99,6 +100,10 @@ public partial class FileDialog {
 						this.PathHistory.AddUnique(path);
 					this.ApplyEntryFilters();
 				}
+
+				lock (this.Meta) {
+					this.Meta.Clear();
+				}
 			}, token);
 		
 		return task;
@@ -154,7 +159,7 @@ public partial class FileDialog {
 		}
 	}
 
-	private bool SelectEntry(Entry target, bool isCtrl = false, bool isShift = false) {
+	private void HandleSelect(Entry target, bool isCtrl = false, bool isShift = false) {
 		lock (this.Files) {
 			var entries = this.Files.AllEntries;
 			var prev = this.Ui.LastSelected;
@@ -164,7 +169,7 @@ public partial class FileDialog {
 
 			var index = this.Files.FilteredEntries.IndexOf(target);
 			var prevIndex = prev == null ? -1 : this.Files.FilteredEntries.IndexOf(prev);
-			if (index < 0) return false;
+			if (index < 0) return;
 
 			isShift &= prevIndex >= 0;
 			if (isShift && hasMax)
@@ -203,7 +208,16 @@ public partial class FileDialog {
 			var selected = target.IsSelected;
 			if (selected && !isShift)
 				this.Ui.LastSelected = target;
-			return selected;
+
+			var metaTarget = (isShift ? prev : target) ?? target;
+			this.UpdateMetadata(metaTarget.IsSelected ? metaTarget : null);
+
+			this.OnSelected?.Invoke(
+				this,
+				this.Files.AllEntries
+					.Where(entry => entry.IsSelected)
+					.Select(entry => entry.File.FullPath)
+			);
 		}
 	}
 	

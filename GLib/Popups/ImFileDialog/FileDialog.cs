@@ -11,6 +11,11 @@ namespace GLib.Popups.ImFileDialog;
 public delegate void FileDialogConfirmHandler(FileDialog sender, IEnumerable<string> paths);
 
 /// <summary>
+/// Represents the method that will handle the <see cref="FileDialog.OnSelected"/> event.
+/// </summary>
+public delegate void FileDialogSelectedHandler(FileDialog sender, IEnumerable<string> paths);
+
+/// <summary>
 /// A file dialog.
 /// </summary>
 public partial class FileDialog {
@@ -31,6 +36,11 @@ public partial class FileDialog {
 	// Events
 	
 	private event FileDialogConfirmHandler OnConfirmed;
+
+	/// <summary>
+	/// Event fired when a selection is made by the user.
+	/// </summary>
+	public event FileDialogSelectedHandler? OnSelected;
 	
 	// State helpers
 	
@@ -164,7 +174,7 @@ public partial class FileDialog {
 			}
 		}
 		
-		this.OnConfirmed?.Invoke(this, paths);
+		this.OnConfirmed.Invoke(this, paths);
 		
 		this.Options.Logger?.Debug($"Confirmed {paths.Count} path(s):\n{string.Join('\n', paths)}");
 		

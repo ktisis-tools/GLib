@@ -22,7 +22,7 @@ public static class Buttons {
 
 	public static bool IconButtonTooltip(FontAwesomeIcon icon, string tooltip, Vector2? size = null) {
 		var result = IconButton(icon, size);
-		if (ImGui.IsItemHovered()) {
+		if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) {
 			using var _ = ImRaii.Tooltip();
 			ImGui.Text(tooltip);
 		}

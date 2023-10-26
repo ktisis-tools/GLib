@@ -3,11 +3,10 @@ using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 
-using GLib.Popups.ImFileDialog.Data;
-
 using ImGuiNET;
 
 using GLib.Widgets;
+using GLib.Popups.ImFileDialog.Data;
 
 namespace GLib.Popups.ImFileDialog; 
 
@@ -21,6 +20,8 @@ public partial class FileDialog {
 		public string FileInput = string.Empty;
 
 		public Entry? LastSelected;
+
+		public bool ShowMetadata = true;
 	}
 	
 	/// <summary>
@@ -68,23 +69,42 @@ public partial class FileDialog {
 	private void DrawHeader() {
 		var isLoading = this.IsLoading;
 		
-		var innerSpace = ImGui.GetStyle().ItemInnerSpacing.X;
-		this.DrawHeaderButtons(innerSpace, isLoading);
+		bool hasMetaHandler;
+		bool hasMetadata;
+		lock (this.Meta) {
+			hasMetaHandler = this.Meta.Handler != null;
+			hasMetadata = hasMetaHandler && this.Meta.CurrentData != null;
+		}
 		
-		using var _ = ImRaii.Disabled(isLoading);
+		var innerSpace = ImGui.GetStyle().ItemInnerSpacing.X;
+		this.DrawHeaderButtonsLeft(innerSpace, isLoading);
 		
 		ImGui.SameLine(0, innerSpace);
 		var avail = ImGui.GetContentRegionAvail().X - innerSpace;
+
+		if (hasMetaHandler)
+			avail -= ImGui.GetFrameHeightWithSpacing();
+
+		using (var _ = ImRaii.Disabled(isLoading)) {
+			this.DrawPathInput(avail * 0.70f, isLoading);
+
+			ImGui.SameLine(0, innerSpace);
+
+			ImGui.SetNextItemWidth(avail * 0.30f);
+			this.DrawSearchInput();
+		}
 		
-		this.DrawPathInput(avail * 0.70f, isLoading);
+		if (!hasMetaHandler) return;
 		
-		ImGui.SameLine(0, innerSpace);
-		
-		ImGui.SetNextItemWidth(avail * 0.30f);
-		this.DrawSearchInput();
+		ImGui.SameLine();
+		using (var _ = ImRaii.Disabled(!hasMetadata)) {
+			ImGui.SameLine(0, innerSpace);
+			if (Buttons.IconButtonTooltip(FontAwesomeIcon.Edit, "Toggle Metadata"))
+				this.Ui.ShowMetadata = !this.Ui.ShowMetadata;
+		}
 	}
 
-	private void DrawHeaderButtons(float innerSpace, bool isLoading = false) {
+	private void DrawHeaderButtonsLeft(float innerSpace, bool isLoading = false) {
 		using (ImRaii.Disabled(!this.CanGoPrevious)) {
 			if (Buttons.IconButtonTooltip(FontAwesomeIcon.ArrowLeft, "Last Folder"))
 				this.GoPrevious();
@@ -142,6 +162,14 @@ public partial class FileDialog {
 	
 	// Draw body; sidebar & folder view
 
+	private bool CanDrawMetadata {
+		get {
+			lock (this.Meta) {
+				return this.Ui.ShowMetadata && this.Meta.CurrentData != null;
+			}	
+		}
+	}
+
 	private void DrawBody() {
 		var frameSize = ImGui.GetContentRegionAvail();
 		frameSize.Y -= ImGui.GetFrameHeightWithSpacing();
@@ -154,13 +182,17 @@ public partial class FileDialog {
 		using var table = ImRaii.Table("##Table", 3, tableFlags, new Vector2(0, 50));
 		if (!table.Success) return;
 		
-		ImGui.TableSetupColumn("##Sidebar");
+		ImGui.TableSetupColumn("##Sidebar", ImGuiTableColumnFlags.WidthFixed);
 		ImGui.TableSetupColumn("##Contents");
-		ImGui.TableSetupColumn("##Metadata", ImGuiTableColumnFlags.Disabled);
+		ImGui.TableSetupColumn("##Metadata", this.CanDrawMetadata ? 0 : ImGuiTableColumnFlags.Disabled);
 		ImGui.TableNextRow();
 
 		this.DrawSidebar(0);
 		this.DrawContents(1);
+		lock (this.Meta) {
+			if (this.CanDrawMetadata)
+				this.DrawMetadata(2, this.Meta.CurrentData!);
+		}
 	}
 	
 	// Location sidebar
@@ -210,7 +242,7 @@ public partial class FileDialog {
 		}
 
 		const ImGuiTableFlags flags = ImGuiTableFlags.Resizable | ImGuiTableFlags.Sortable | ImGuiTableFlags.Hideable | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY;
-		using var table = ImRaii.Table($"##{this.Title}_Contents", 4, flags);
+		using var table = ImRaii.Table("##Contents", 4, flags);
 		if (!table.Success) return;
 		
 		// Handle previous & next mouse keys
@@ -220,12 +252,12 @@ public partial class FileDialog {
 				this.GoPrevious();
 			if (this.CanGoNext && ImGui.IsMouseClicked((ImGuiMouseButton)4))
 				this.GoNext();
-		}
+ 		}
 		
 		ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.NoHide);
-		ImGui.TableSetupColumn("Date modified");
-		ImGui.TableSetupColumn("Type");
-		ImGui.TableSetupColumn("Size");
+		ImGui.TableSetupColumn("Date modified", ImGuiTableColumnFlags.WidthStretch);
+		ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthStretch);
+		ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.WidthStretch);
 		ImGui.TableSetupScrollFreeze(4, 1);
 		ImGui.TableHeadersRow();
 		
@@ -281,7 +313,7 @@ public partial class FileDialog {
 		} else if (canSelect) {
 			var isShift = ImGui.IsKeyDown(ImGuiKey.ModShift);
 			var isCtrl = !isShift && ImGui.IsKeyDown(ImGuiKey.ModCtrl);
-			this.SelectEntry(entry, isCtrl, isShift);
+			this.HandleSelect(entry, isCtrl, isShift);
 		}
 	}
 
@@ -331,6 +363,10 @@ public partial class FileDialog {
 		var confirmWidth = ImGui.CalcTextSize(this.Options.ConfirmButtonLabel).X + framePad;
 		var cancelWidth = ImGui.CalcTextSize(this.Options.CancelButtonLabel).X + framePad;
 		
+		ImGui.AlignTextToFramePadding();
+		ImGui.Text("File Name: ");
+		ImGui.SameLine(0, style.ItemSpacing.X);
+		
 		var avail = ImGui.GetContentRegionAvail().X - confirmWidth - cancelWidth - style.ItemSpacing.X * 3;
 
 		var newFileName = false;
@@ -372,6 +408,68 @@ public partial class FileDialog {
 			using var _ = ImRaii.PushId(i++);
 			var select = ImGui.MenuItem(filter.Name, string.Join(", ", filter.Label));
 			if (select) this.SetFilter(filter);
+		}
+	}
+	
+	// Metadata
+
+	private void DrawMetadata(int index, FileMeta meta) {
+		ImGui.TableSetColumnIndex(index);
+		
+		//using var _style = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, ImGui.GetStyle().ItemSpacing);
+		using var _frame = ImRaii.Child(
+			"##MetadataFrame",
+			ImGui.GetContentRegionAvail(),
+			false,
+			 ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoScrollbar
+		);
+		
+		if (!_frame.Success) return;
+		
+		//ImGui.Dummy(ImGui.GetStyle().ItemSpacing);
+		
+		if (meta.Texture != null) {
+			var avail = ImGui.GetContentRegionAvail();
+			avail.Y *= 0.65f;
+			
+			var size = meta.Texture.Size;
+			var ratio = Math.Min(avail.X / size.X, avail.Y / size.Y);
+			size *= ratio;
+
+			var padding = (avail.X / 2) - (size.X / 2);
+			ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padding);
+			ImGui.Image(meta.Texture.ImGuiHandle, size);
+			ImGui.Spacing();
+		}
+		
+		ImGui.Text(meta.Name);
+
+		ImGui.AlignTextToFramePadding();
+		if (meta.Description != null)
+			ImGui.TextWrapped(meta.Description);
+		
+		this.DrawMetaProperties(meta.Properties);
+	}
+
+	private void DrawMetaProperties(Dictionary<string, string> props) {
+		if (props.Count == 0) return;
+		
+		using var _table = ImRaii.Table("##MetaProperties", 2, ImGuiTableFlags.SizingFixedFit);
+		if (!_table.Success) return;
+
+		using var _ = ImRaii.Disabled();
+
+		ImGui.TableSetupColumn("##Property", ImGuiTableColumnFlags.WidthFixed);
+		ImGui.TableSetupColumn("##Value", ImGuiTableColumnFlags.WidthStretch);
+		
+		foreach (var (prop, value) in props) {
+			ImGui.TableNextRow();
+
+			ImGui.TableSetColumnIndex(0);
+			ImGui.Text($"{prop}:");
+
+			ImGui.TableSetColumnIndex(1);
+			ImGui.TextWrapped(value);
 		}
 	}
 	
