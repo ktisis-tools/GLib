@@ -5,6 +5,9 @@ namespace GLib.Popups.Context;
 /// </summary>
 /// <typeparam name=""></typeparam>
 public sealed class ContextMenuBuilder : ContextMenuNodeBuilder<ContextMenu, ContextMenuBuilder> {
+	/// <inheritdoc cref="ContextMenuNodeBuilder{T,TBuilder}.Builder"/>
+	protected override ContextMenuBuilder Builder() => new();
+	
 	/// <summary>
 	/// Builds the <see cref="ContextMenu"/>.
 	/// </summary>
