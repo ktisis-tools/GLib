@@ -1,4 +1,6 @@
-﻿using ImGuiNET;
+﻿using System.Numerics;
+
+using ImGuiNET;
 
 using Dalamud.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -101,12 +103,16 @@ public class PopupList<T> {
 			return false;
 		
 		this.DrawSearchBar(enumerable);
-        
+
+		var style = ImGui.GetStyle();
+		var height = itemHeight * 10 + style.ItemSpacing.Y * 2 + style.WindowPadding.Y;
+		
 		return this._listBox.Draw(
 			this._filtered ?? enumerable,
 			this._filtered?.Count ?? count,
 			out selected,
-			itemHeight
+			itemHeight,
+			new Vector2(0, itemHeight * 10 + ImGui.GetStyle().ItemSpacing.Y * 2)
 		);
 	}
 	

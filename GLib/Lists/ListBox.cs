@@ -108,7 +108,7 @@ public class ListBox<T> {
 		
 		var isSelected = false;
 		
-		itemHeight = this.HeightOrCalcDefault(itemHeight) + ImGui.GetStyle().ItemSpacing.Y;
+		itemHeight = this.HeightOrCalcDefault(itemHeight) + ImGui.GetStyle().ItemSpacing.Y / 2;
 		var frameHeight = ImGui.GetWindowSize().Y;
 		
 		// Take keyboard input
