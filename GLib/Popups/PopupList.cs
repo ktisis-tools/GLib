@@ -1,7 +1,7 @@
 ﻿using ImGuiNET;
 
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
+using Dalamud.Interface.Utility.Raii;
 
 using GLib.Lists;
 
@@ -17,7 +17,7 @@ public class PopupList<T> {
 	private readonly ListBox<T> _listBox;
 
 	private string _searchInput = string.Empty;
-	private List<T>? _searchResults;
+	private List<T>? _filtered;
 	
 	// Events
 
@@ -36,17 +36,12 @@ public class PopupList<T> {
 	/// </summary>
 	/// <param name="id">The label displayed next to the ListBox frame, which uniquely identifies it and the popup.</param>
 	/// <param name="drawItem">See <see cref="ListBox{T}.DrawItemDelegate"/>.</param>
-	/// <param name="itemHeight">
-	/// The height of each item to draw.
-	/// If set to zero or lower, the return value of <c>ImGui.GetFrameHeight()</c> will be used.
-	/// </param>
 	public PopupList(
 		string id,
-		ListBox<T>.DrawItemDelegate drawItem,
-		float itemHeight = -1
+		ListBox<T>.DrawItemDelegate drawItem
 	) {
 		this._id = id;
-		this._listBox = new ListBox<T>(id, drawItem, itemHeight);
+		this._listBox = new ListBox<T>(id, drawItem);
 	}
 	
 	// Factory methods
@@ -81,9 +76,12 @@ public class PopupList<T> {
 	/// </summary>
 	/// <param name="list">A <see cref="List{T}"/> containing items to draw.</param>
 	/// <param name="selected">The selected item if applicable, otherwise null by default.</param>
+	/// <param name="itemHeight">
+	/// The height of each item to draw, calculated automatically if value is set to zero or lower.
+	/// </param>
 	/// <returns>A value indicating whether a selection was made by the user.</returns>
-	public bool Draw(List<T> list, out T? selected)
-		=> this.Draw(list, list.Count, out selected);
+	public bool Draw(List<T> list, out T? selected, float itemHeight = -1)
+		=> this.Draw(list, list.Count, out selected, itemHeight);
     
 	/// <summary>
 	/// Draws an ImGui popup containing a searchable list of the items provided.
@@ -91,8 +89,11 @@ public class PopupList<T> {
 	/// <param name="enumerable">An <see cref="IEnumerable{T}"/> containing items to draw.</param>
 	/// <param name="count">The number of items to account for, determining the maximum scroll height.</param>
 	/// <param name="selected">The selected item if applicable, otherwise null by default.</param>
+	/// <param name="itemHeight">
+	/// The height of each item to draw, calculated automatically if value is set to zero or lower.
+	/// </param>
 	/// <returns>A value indicating whether a selection was made by the user.</returns>
-	public bool Draw(IEnumerable<T> enumerable, int count, out T? selected) {
+	public bool Draw(IEnumerable<T> enumerable, int count, out T? selected, float itemHeight = -1) {
 		selected = default;
 		
 		using var popup = ImRaii.Popup(this._id);
@@ -102,9 +103,10 @@ public class PopupList<T> {
 		this.DrawSearchBar(enumerable);
         
 		return this._listBox.Draw(
-			this._searchResults ?? enumerable,
-			this._searchResults?.Count ?? count,
-			out selected
+			this._filtered ?? enumerable,
+			this._filtered?.Count ?? count,
+			out selected,
+			itemHeight
 		);
 	}
 	
@@ -116,9 +118,9 @@ public class PopupList<T> {
 
 		if (ImGui.InputTextWithHint($"##{this._id}_Search", "Search...", ref this._searchInput, 256)) {
 			if (this._searchInput.IsNullOrEmpty())
-				this._searchResults = null;
+				this._filtered = null;
 			else
-				this._searchResults = enumerable
+				this._filtered = enumerable
 					.Where(item => this._search.Invoke(item, this._searchInput))
 					.ToList();
 		}

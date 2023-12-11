@@ -26,7 +26,6 @@ public class ListBox<T> {
 	private readonly string _label;
 
 	private readonly DrawItemDelegate _drawItem;
-	private readonly float _itemHeight;
 
 	/// <summary>
 	/// The index of the current focus target.
@@ -38,32 +37,35 @@ public class ListBox<T> {
 	/// </summary>
 	/// <param name="label">The label displayed next to the ListBox frame, which uniquely identifies it.</param>
 	/// <param name="drawItem">See <see cref="DrawItemDelegate"/>.</param>
-	/// <param name="itemHeight">
-	/// The height of each item to draw, calculated automatically if value is set to zero or lower.
-	/// </param>
 	public ListBox(
 		string label,
-		DrawItemDelegate drawItem,
-		float itemHeight = -1
+		DrawItemDelegate drawItem
 	) {
 		this._label = label;
 		this._drawItem = drawItem;
-		this._itemHeight = itemHeight;
 	}
 	
 	// Draw UI
-
-	private float ItemHeight => this._itemHeight <= 0.0f ? ImGui.GetTextLineHeight() : this._itemHeight;
+	
+	private float HeightOrCalcDefault(float itemHeight)
+		=> itemHeight <= 0.0f ? ImGui.GetTextLineHeight() : itemHeight;
 
 	/// <summary>
 	/// Draws an ImGui ListBox containing items provided by an enumerable.
 	/// </summary>
 	/// <param name="list">A <see cref="List{T}"/> containing items to draw.</param>
 	/// <param name="selected">The selected item if applicable, otherwise null by default.</param>
+	/// <param name="itemHeight">
+	/// The height of each item to draw, calculated automatically if value is set to zero or lower.
+	/// </param>
 	/// <param name="boxSize">Optional: A fixed size for the ListBox to draw in.</param>
 	/// <returns>A value indicating whether a selection was made by the user.</returns>
-	public bool Draw(List<T> list, out T? selected, Vector2? boxSize = null)
-		=> this.Draw(list, list.Count, out selected, boxSize);
+	public bool Draw(
+		List<T> list,
+		out T? selected,
+		float itemHeight = -1,
+		Vector2? boxSize = null
+	) => this.Draw(list, list.Count, out selected, itemHeight, boxSize);
 	
 	/// <summary>
 	/// Draws an ImGui ListBox containing items provided by an enumerable.
@@ -71,12 +73,16 @@ public class ListBox<T> {
 	/// <param name="enumerable">An <see cref="IEnumerable{T}"/> containing items to draw.</param>
 	/// <param name="count">The number of items to account for, determining the maximum scroll height.</param>
 	/// <param name="selected">The selected item if applicable, otherwise null by default.</param>
+	/// <param name="itemHeight">
+	/// The height of each item to draw, calculated automatically if value is set to zero or lower.
+	/// </param>
 	/// <param name="boxSize">Optional: A fixed size for the ListBox to draw in.</param>
 	/// <returns>A value indicating whether a selection was made by the user.</returns>
 	public bool Draw(
 		IEnumerable<T> enumerable,
 		int count,
 		out T? selected,
+		float itemHeight = -1,
 		Vector2? boxSize = null
 	) {
 		selected = default;
@@ -86,18 +92,23 @@ public class ListBox<T> {
 		
 		// Draw ListBox & return result
 		using var box = ImRaii.ListBox(this._label, boxSize ?? Vector2.Zero);
-		return box.Success && this.DrawInner(enumerable, count, out selected);
+		return box.Success && this.DrawInner(enumerable, count, out selected, itemHeight);
 	}
 
 	/// <summary>
 	/// Draws the inner contents of the ImGui <c>ListBox</c> frame.
 	/// </summary>
-	private bool DrawInner(IEnumerable<T> enumerable, int count, out T? selected) {
+	private bool DrawInner(
+		IEnumerable<T> enumerable,
+		int count,
+		out T? selected,
+		float itemHeight = -1
+	) {
 		selected = default;
 		
 		var isSelected = false;
-
-		var itemHeight = this.ItemHeight + ImGui.GetStyle().ItemSpacing.Y;
+		
+		itemHeight = this.HeightOrCalcDefault(itemHeight) + ImGui.GetStyle().ItemSpacing.Y;
 		var frameHeight = ImGui.GetWindowSize().Y;
 		
 		// Take keyboard input
@@ -144,7 +155,7 @@ public class ListBox<T> {
 		
 		// Empty content region for remaining scrollable space
 		var dummyHeight = maxScroll - ImGui.GetCursorPosY();
-		if (dummyHeight > 0.0f)
+		if (dummyHeight >= itemHeight)
 			ImGui.Dummy(new Vector2(0, dummyHeight));
 		
 		return isSelected;
