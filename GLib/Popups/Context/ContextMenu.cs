@@ -2,7 +2,7 @@ using ImGuiNET;
 
 namespace GLib.Popups.Context; 
 
-public class ContextMenu : IPopup {
+public class ContextMenu {
 	private readonly NodeContainer _nodes = new();
 
 	public bool IsOpen { get; set; }
