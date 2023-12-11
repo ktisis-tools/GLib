@@ -108,7 +108,7 @@ public class ListBox<T> {
 		
 		var isSelected = false;
 		
-		itemHeight = this.HeightOrCalcDefault(itemHeight) + ImGui.GetStyle().ItemSpacing.Y / 2;
+		itemHeight = this.HeightOrCalcDefault(itemHeight) + ImGui.GetStyle().ItemSpacing.Y;
 		var frameHeight = ImGui.GetWindowSize().Y;
 		
 		// Take keyboard input
@@ -155,7 +155,7 @@ public class ListBox<T> {
 		
 		// Empty content region for remaining scrollable space
 		var dummyHeight = maxScroll - ImGui.GetCursorPosY();
-		if (dummyHeight >= itemHeight)
+		if (dummyHeight >= 1.0f)
 			ImGui.Dummy(new Vector2(0, dummyHeight));
 		
 		return isSelected;

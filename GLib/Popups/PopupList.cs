@@ -105,14 +105,14 @@ public class PopupList<T> {
 		this.DrawSearchBar(enumerable);
 
 		var style = ImGui.GetStyle();
-		var height = itemHeight * 10 + style.ItemSpacing.Y * 2 + style.WindowPadding.Y;
+		var height = (itemHeight + style.ItemSpacing.Y) * 10 + style.WindowPadding.Y;
 		
 		return this._listBox.Draw(
 			this._filtered ?? enumerable,
 			this._filtered?.Count ?? count,
 			out selected,
 			itemHeight,
-			new Vector2(0, itemHeight * 10 + ImGui.GetStyle().ItemSpacing.Y * 2)
+			new Vector2(0, height)
 		);
 	}
 	
