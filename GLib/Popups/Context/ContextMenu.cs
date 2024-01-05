@@ -7,7 +7,7 @@ namespace GLib.Popups.Context;
 /// <summary>
 /// TODO: Document
 /// </summary>
-public sealed class ContextMenu : IPopup {
+public class ContextMenu : IPopup {
 	private readonly string _id;
 	private readonly NodeContainer _nodes = new();
 	
