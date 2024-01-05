@@ -4,7 +4,10 @@ using ImGuiNET;
 
 namespace GLib.Popups.Context; 
 
-public class ContextMenu {
+/// <summary>
+/// TODO: Document
+/// </summary>
+public sealed class ContextMenu : IPopup {
 	private readonly string _id;
 	private readonly NodeContainer _nodes = new();
 	
@@ -53,6 +56,11 @@ public class ContextMenu {
 		if (popup.Success)
 			this._nodes.Draw();
 		return popup.Success;
+	}
+
+	public ContextMenu Open() {
+		this.IsOpen = true;
+		return this;
 	}
 	
 	// Node implementations
