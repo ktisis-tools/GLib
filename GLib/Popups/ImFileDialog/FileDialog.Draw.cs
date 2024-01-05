@@ -24,9 +24,7 @@ public partial class FileDialog {
 		public bool ShowMetadata = true;
 	}
 	
-	/// <summary>
-	/// Draws the file dialog.
-	/// </summary>
+	/// <inheritdoc cref="IPopup.Draw"/>
 	public bool Draw() {
 		var isOpen = this.IsOpen;
 		if (!isOpen) return false;
@@ -392,7 +390,8 @@ public partial class FileDialog {
 		}
 
 		ImGui.SameLine();
-		ImGui.Button(this.Options.CancelButtonLabel, new Vector2(cancelWidth, frameHeight));
+		if (ImGui.Button(this.Options.CancelButtonLabel, new Vector2(cancelWidth, frameHeight)))
+			this.Close();
 	}
 
 	private void DrawFilterSelect(float width) {

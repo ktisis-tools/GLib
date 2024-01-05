@@ -41,5 +41,5 @@ public abstract class ContextMenuNodeBuilder<T, TBuilder>
 	public TBuilder Separator()
 		=> this.AddNode(new ContextMenu.Separator());
 	
-	public abstract T Build();
+	public abstract T Build(string id);
 }

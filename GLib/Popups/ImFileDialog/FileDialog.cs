@@ -18,7 +18,7 @@ public delegate void FileDialogSelectedHandler(FileDialog sender, IEnumerable<st
 /// <summary>
 /// A file dialog.
 /// </summary>
-public partial class FileDialog {
+public partial class FileDialog : IPopup {
 	/// <summary>
 	/// The window title of this file dialog.
 	/// </summary>
@@ -87,9 +87,7 @@ public partial class FileDialog {
 		this.IsFolderMode = options.Flags.HasFlag(FileDialogFlags.FolderMode);
 	}
 	
-	/// <summary>
-	/// Gets or sets a value indicating whether this window is open or not.
-	/// </summary>
+	/// <inheritdoc cref="IPopup.IsOpen"/>
 	public bool IsOpen {
 		get => this.Ui.IsOpen;
 		set {
@@ -176,7 +174,7 @@ public partial class FileDialog {
 		
 		this.OnConfirmed.Invoke(this, paths);
 		
-		this.Options.Logger?.Debug($"Confirmed {paths.Count} path(s):\n{string.Join('\n', paths)}");
+		this.Options.Logger?.Verbose($"Confirmed {paths.Count} path(s):\n{string.Join('\n', paths)}");
 		
 		this.Close();
 	}

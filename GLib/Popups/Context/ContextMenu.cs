@@ -1,20 +1,62 @@
+using Dalamud.Interface.Utility.Raii;
+
 using ImGuiNET;
 
 namespace GLib.Popups.Context; 
 
 public class ContextMenu {
+	private readonly string _id;
 	private readonly NodeContainer _nodes = new();
-
-	public bool IsOpen { get; set; }
 	
+	private bool _isOpen;
+	private bool _isOpening;
+
+	public bool IsOpen {
+		get => this._isOpen;
+		set {
+			this._isOpen = value;
+			this._isOpening = value;
+		}
+	}
+
 	/// <summary>
 	/// Constructs a new instance of the <see cref="ContextMenu"/> class.
 	/// </summary>
-	public ContextMenu() { }
+	public ContextMenu(
+		string id
+	) {
+		this._id = id;
+	}
 
-	public ContextMenu(IEnumerable<IContextMenuNode> nodes)
-		=> this._nodes.AddRange(nodes);
+	/// <summary>
+	/// Constructs a new instance of the <see cref="ContextMenu"/> class.
+	/// </summary>
+	public ContextMenu(
+		string id,
+		IEnumerable<IContextMenuNode> nodes
+	) {
+		this._id = id;
+		this._nodes.AddRange(nodes);
+	}
 
+	public bool Draw() {
+		if (this._isOpening) {
+			this._isOpening = false;
+			ImGui.OpenPopup(this._id);
+		}
+
+		this._isOpen = ImGui.IsPopupOpen(this._id);
+		if (!this._isOpen)
+			return false;
+
+		using var popup = ImRaii.ContextPopup(this._id);
+		if (popup.Success)
+			this._nodes.Draw();
+		return popup.Success;
+	}
+	
+	// Node implementations
+	
 	public ContextMenu AddNode(IContextMenuNode node) {
 		this._nodes.Add(node);
 		return this;
@@ -24,13 +66,6 @@ public class ContextMenu {
 		this._nodes.AddRange(nodes);
 		return this;
 	}
-
-	public bool Draw() {
-		this._nodes.Draw();
-		return true;
-	}
-	
-	// Node implementations
 
 	private class NodeContainer : List<IContextMenuNode>, IContextMenuNode {
 		public void Draw() => this.ForEach(node => node.Draw());
