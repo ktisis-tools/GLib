@@ -23,7 +23,11 @@ public partial class FileDialog : IPopup {
 	/// The window title of this file dialog.
 	/// </summary>
 	public readonly string Title;
-	private readonly FileDialogOptions Options;
+	
+	/// <summary>
+	/// The <see cref="FileDialogOptions"/> this file dialog was configured with.
+	/// </summary>
+	public readonly FileDialogOptions Options;
 	
 	private readonly UiState Ui = new();
 	private readonly FileState Files = new();
