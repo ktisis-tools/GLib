@@ -8,15 +8,15 @@ using Dalamud.Interface.Utility.Raii;
 namespace GLib.Widgets; 
 
 public static class Buttons {
+	public static float CalcSize() => UiBuilder.IconFont.FontSize + ImGui.GetStyle().CellPadding.X * 2;
+	
 	public static bool IconButton(FontAwesomeIcon icon, Vector2? size = null) {
-		var font = UiBuilder.IconFont;
-
 		if (size == null) {
-			var newSize = font.FontSize + ImGui.GetStyle().CellPadding.X * 2;
+			var newSize = CalcSize();
 			size = new Vector2(newSize, newSize);
 		}
 
-		using var _ = ImRaii.PushFont(font);
+		using var _ = ImRaii.PushFont(UiBuilder.IconFont);
 		return ImGui.Button(icon.ToIconString(), size.Value);
 	}
 

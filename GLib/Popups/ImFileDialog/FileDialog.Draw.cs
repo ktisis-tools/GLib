@@ -122,7 +122,7 @@ public partial class FileDialog {
 			ImGui.SameLine(0, innerSpace);
 			
 			// TODO
-			Buttons.IconButtonTooltip(FontAwesomeIcon.FolderPlus, "Create New Folder");
+			//Buttons.IconButtonTooltip(FontAwesomeIcon.FolderPlus, "Create New Folder");
 		}
 	}
 
