@@ -47,6 +47,14 @@ public class PopupManager {
 	}
 
 	/// <summary>
+	/// TODO: Document
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <returns></returns>
+	public T? Get<T>() where T : class, IPopup
+		=> (T?)this.Popups.FirstOrDefault(popup => popup is T);
+
+	/// <summary>
 	/// Removes an <see cref="IPopup"/> implementation.
 	/// </summary>
 	/// <param name="popup">The <see cref="IPopup"/> implementation to remove.</param>
