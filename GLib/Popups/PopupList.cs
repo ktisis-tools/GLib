@@ -21,6 +21,8 @@ public class PopupList<T> {
 	private string _searchInput = string.Empty;
 	private List<T>? _filtered;
 	
+	private bool _isOpening;
+	
 	// Events
 
 	/// <summary>
@@ -62,6 +64,7 @@ public class PopupList<T> {
 	/// Opens this popup.
 	/// </summary>
 	public void Open() {
+		this._isOpening = true;
 		ImGui.OpenPopup(this._id);
 	}
 	
@@ -101,7 +104,13 @@ public class PopupList<T> {
 		using var popup = ImRaii.Popup(this._id);
 		if (!popup.Success) return false;
 		
+		// ReSharper disable PossibleMultipleEnumeration
+		if (this._isOpening)
+			this.UpdateSearchFilter(enumerable);
 		this.DrawSearchBar(enumerable);
+		// ReSharper restore PossibleMultipleEnumeration
+
+		this._isOpening = false;
 
 		var style = ImGui.GetStyle();
 		var height = (itemHeight > 0.0f ? itemHeight : ImGui.GetFrameHeight()) * 10 + style.WindowPadding.Y;
@@ -118,19 +127,23 @@ public class PopupList<T> {
 	// Search draw
 
 	private void DrawSearchBar(IEnumerable<T> enumerable) {
-		if (this._search == null)
-			return;
+		if (this._search == null) return;
 
 		if (ImGui.InputTextWithHint($"##{this._id}_Search", "Search...", ref this._searchInput, 256)) {
 			if (this._searchInput.IsNullOrEmpty())
 				this._filtered = null;
 			else
-				this._filtered = enumerable
-					.Where(item => this._search.Invoke(item, this._searchInput))
-					.ToList();
+				this.UpdateSearchFilter(enumerable);
 		}
 
 		if (!ImGui.IsAnyItemActive())
 			ImGui.SetKeyboardFocusHere(-1);
+	}
+
+	private void UpdateSearchFilter(IEnumerable<T> enumerable) {
+		if (this._search == null) return;
+		this._filtered = enumerable
+			.Where(item => this._search.Invoke(item, this._searchInput))
+			.ToList();
 	}
 }
