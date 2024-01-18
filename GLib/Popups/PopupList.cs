@@ -99,13 +99,12 @@ public class PopupList<T> {
 		selected = default;
 		
 		using var popup = ImRaii.Popup(this._id);
-		if (!popup.Success)
-			return false;
+		if (!popup.Success) return false;
 		
 		this.DrawSearchBar(enumerable);
 
 		var style = ImGui.GetStyle();
-		var height = (itemHeight + style.ItemSpacing.Y) * 10 + style.WindowPadding.Y;
+		var height = (itemHeight > 0.0f ? itemHeight : ImGui.GetFrameHeight()) * 10 + style.WindowPadding.Y;
 		
 		return this._listBox.Draw(
 			this._filtered ?? enumerable,
