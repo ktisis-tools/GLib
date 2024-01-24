@@ -7,7 +7,7 @@ public interface IPopup {
 	/// <summary>
 	/// Gets or sets a value indicating whether this popup is open or not.
 	/// </summary>
-	public bool IsOpen { get; set; }
+	public bool IsOpen { get; }
 
 	/// <summary>
 	/// Draws the popup.

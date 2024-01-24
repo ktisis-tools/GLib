@@ -129,12 +129,8 @@ public class PopupList<T> {
 	private void DrawSearchBar(IEnumerable<T> enumerable) {
 		if (this._search == null) return;
 
-		if (ImGui.InputTextWithHint($"##{this._id}_Search", "Search...", ref this._searchInput, 256)) {
-			if (this._searchInput.IsNullOrEmpty())
-				this._filtered = null;
-			else
-				this.UpdateSearchFilter(enumerable);
-		}
+		if (ImGui.InputTextWithHint($"##{this._id}_Search", "Search...", ref this._searchInput, 256))
+			this.UpdateSearchFilter(enumerable);
 
 		if (!ImGui.IsAnyItemActive())
 			ImGui.SetKeyboardFocusHere(-1);
@@ -142,8 +138,13 @@ public class PopupList<T> {
 
 	private void UpdateSearchFilter(IEnumerable<T> enumerable) {
 		if (this._search == null) return;
-		this._filtered = enumerable
-			.Where(item => this._search.Invoke(item, this._searchInput))
-			.ToList();
+
+		if (this._searchInput.IsNullOrEmpty()) {
+			this._filtered = null;
+		} else {
+			this._filtered = enumerable
+				.Where(item => this._search.Invoke(item, this._searchInput))
+				.ToList();
+		}
 	}
 }
