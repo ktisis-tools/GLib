@@ -31,7 +31,7 @@ public enum FileDialogFlags {
 /// <summary>
 /// Options used to configure <see cref="FileDialog"/>.
 /// </summary>
-public class FileDialogOptions {
+public record FileDialogOptions {
 	internal readonly IPluginLog? Logger;
 
 	/// <summary>
