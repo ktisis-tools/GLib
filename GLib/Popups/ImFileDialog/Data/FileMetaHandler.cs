@@ -1,4 +1,5 @@
 using Dalamud.Interface;
+using Dalamud.Plugin.Services;
 
 namespace GLib.Popups.ImFileDialog.Data; 
 
@@ -11,7 +12,7 @@ public delegate FileMeta? FileMetaBuildDelegate(string path);
 /// Interface for providing file metadata.
 /// </summary>
 public sealed class FileMetaHandler {
-	private readonly UiBuilder _uiBuilder;
+	private readonly ITextureProvider _tex;
 	
 	private readonly Dictionary<string, FileMetaBuildDelegate> Handlers = new();
 
@@ -19,8 +20,8 @@ public sealed class FileMetaHandler {
 	/// Constructs a new instance of the <see cref="FileMetaHandler"/> class.
 	/// </summary>
 	/// <param name="uiBuilder">A <see cref="UiBuilder"/> instance.</param>
-	public FileMetaHandler(UiBuilder uiBuilder) {
-		this._uiBuilder = uiBuilder;
+	public FileMetaHandler(ITextureProvider tex) {
+		this._tex = tex;
 	}
 
 	/// <summary>
@@ -48,8 +49,9 @@ public sealed class FileMetaHandler {
 			return false;
 		
 		result = handler.Invoke(path);
-		if (result?.ImageData is { Length: > 0 })
-			result.Texture = this._uiBuilder.LoadImage(result.ImageData);
+		if (result?.ImageData is {Length: > 0}) {
+			result.Texture = this._tex.CreateFromImageAsync(result.ImageData).Result;
+		}
 
 		return result is { IsEmpty: false };
 	}
