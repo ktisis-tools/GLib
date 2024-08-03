@@ -429,7 +429,7 @@ public partial class FileDialog {
 		//ImGui.Dummy(ImGui.GetStyle().ItemSpacing);
 		
 		if (meta.Texture != null) {
-			if (meta.Texture.TryGetWrap(out var texture, out _)) {
+			if (meta.Texture.TryGetWrap(out var texture, out var err)) {
 				var avail = ImGui.GetContentRegionAvail();
 				avail.Y *= 0.65f;
 
@@ -441,7 +441,7 @@ public partial class FileDialog {
 				ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padding);
 				ImGui.Image(texture.ImGuiHandle, size);
 				ImGui.Spacing();
-			} else {
+			} else if (err != null) {
 				using var _ = ImRaii.PushColor(ImGuiCol.Text, WarningColor);
 				ImGui.Text("Failed to load image.");
 			}
