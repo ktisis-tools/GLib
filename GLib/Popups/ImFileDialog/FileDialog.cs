@@ -119,8 +119,7 @@ public partial class FileDialog : IPopup {
 	/// <summary>
 	/// Opens the file dialog window.
 	/// </summary>
-	public void Open()
-		=> this.Open(this.ActiveDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+	public void Open() => this.Open(this.ActiveDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
 	
 	/// <summary>
 	/// Opens the file dialog window.

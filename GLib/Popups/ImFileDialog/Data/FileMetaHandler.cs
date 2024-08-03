@@ -45,14 +45,19 @@ public sealed class FileMetaHandler {
 		result = null;
 
 		var ext = Path.GetExtension(path);
-		if (!this.Handlers.TryGetValue(ext, out var handler))
+		if (!this.TryGetHandlerFor(ext, out var handler))
 			return false;
 		
-		result = handler.Invoke(path);
+		result = handler!.Invoke(path);
 		if (result?.ImageData is {Length: > 0}) {
-			result.Texture = this._tex.CreateFromImageAsync(result.ImageData).Result;
+			result.TextureWrap = this._tex.CreateFromImageAsync(result.ImageData).Result;
 		}
 
 		return result is { IsEmpty: false };
+	}
+
+	private bool TryGetHandlerFor(string ext, out FileMetaBuildDelegate? handler) {
+		return this.Handlers.TryGetValue(ext, out handler)
+			|| this.Handlers.TryGetValue("*", out handler);
 	}
 }

@@ -12,6 +12,7 @@ namespace GLib.Popups.ImFileDialog;
 
 public partial class FileDialog {
 	private const uint DirectoryColor = 0xFFFDE98B;
+	private const uint WarningColor = 0xFF00D8FF;
 
 	private class UiState {
 		public bool IsOpen;
@@ -428,17 +429,22 @@ public partial class FileDialog {
 		//ImGui.Dummy(ImGui.GetStyle().ItemSpacing);
 		
 		if (meta.Texture != null) {
-			var avail = ImGui.GetContentRegionAvail();
-			avail.Y *= 0.65f;
-			
-			var size = meta.Texture.Size;
-			var ratio = Math.Min(avail.X / size.X, avail.Y / size.Y);
-			size *= ratio;
+			if (meta.Texture.TryGetWrap(out var texture, out _)) {
+				var avail = ImGui.GetContentRegionAvail();
+				avail.Y *= 0.65f;
 
-			var padding = (avail.X / 2) - (size.X / 2);
-			ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padding);
-			ImGui.Image(meta.Texture.ImGuiHandle, size);
-			ImGui.Spacing();
+				var size = texture.Size;
+				var ratio = Math.Min(avail.X / size.X, avail.Y / size.Y);
+				size *= ratio;
+
+				var padding = (avail.X / 2) - (size.X / 2);
+				ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padding);
+				ImGui.Image(texture.ImGuiHandle, size);
+				ImGui.Spacing();
+			} else {
+				using var _ = ImRaii.PushColor(ImGuiCol.Text, WarningColor);
+				ImGui.Text("Failed to load image.");
+			}
 		}
 		
 		ImGui.Text(meta.Name);

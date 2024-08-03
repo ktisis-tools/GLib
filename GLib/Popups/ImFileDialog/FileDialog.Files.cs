@@ -161,7 +161,7 @@ public partial class FileDialog {
 
 	private void HandleSelect(Entry target, bool isCtrl = false, bool isShift = false) {
 		lock (this.Files) {
-			var entries = this.Files.AllEntries;
+			var entries = this.Files.FilteredEntries;
 			var prev = this.Ui.LastSelected;
 
 			var maxCount = this.MaxCount;
