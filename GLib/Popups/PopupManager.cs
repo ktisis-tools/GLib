@@ -1,7 +1,5 @@
 using System.Collections.Immutable;
 
-using GLib.Popups.Context;
-
 namespace GLib.Popups; 
 
 /// <summary>
@@ -51,8 +49,13 @@ public class PopupManager {
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <returns></returns>
-	public T? Get<T>() where T : class, IPopup
-		=> (T?)this.Popups.FirstOrDefault(popup => popup is T);
+	public T? Get<T>() where T : class, IPopup => (T?)this.Popups.FirstOrDefault(popup => popup is T);
+
+	/// <summary>
+	/// Gets all popups of a given type.
+	/// </summary>
+	/// <returns></returns>
+	public IEnumerable<T> GetAll<T>() where T : class, IPopup => this.Popups.Where(popup => popup is T).Cast<T>();
 
 	/// <summary>
 	/// Removes an <see cref="IPopup"/> implementation.
