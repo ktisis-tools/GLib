@@ -2,8 +2,7 @@ using System.Numerics;
 
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
-
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using GLib.Widgets;
 using GLib.Popups.ImFileDialog.Data;
@@ -439,7 +438,7 @@ public partial class FileDialog {
 
 				var padding = (avail.X / 2) - (size.X / 2);
 				ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padding);
-				ImGui.Image(texture.ImGuiHandle, size);
+				ImGui.Image(texture.Handle, size);
 				ImGui.Spacing();
 			} else if (err != null) {
 				using var _ = ImRaii.PushColor(ImGuiCol.Text, WarningColor);

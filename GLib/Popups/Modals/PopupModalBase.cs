@@ -1,5 +1,4 @@
-using ImGuiNET;
-
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 
 namespace GLib.Popups.Modals; 

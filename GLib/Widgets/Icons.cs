@@ -1,14 +1,19 @@
 using System.Numerics;
 
 using Dalamud.Interface;
-
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace GLib.Widgets;
 
 public static class Icons {
 	// TODO: Document
 	public static void DrawIcon(FontAwesomeIcon icon, uint? color = null) {
+		// Workaround: FontAwesomeIcon.None now renders as a caravan instead of being invisible.
+		if (icon == FontAwesomeIcon.None) {
+			ImGui.Text(string.Empty);
+			return;
+		}
+		
 		var hasColor = color.HasValue;
 		if (hasColor) ImGui.PushStyleColor(ImGuiCol.Text, color!.Value);
 		
