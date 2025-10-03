@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Interface;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace GLib.Widgets;
 
@@ -14,21 +15,17 @@ public static class Icons {
 			return;
 		}
 		
-		var hasColor = color.HasValue;
-		if (hasColor) ImGui.PushStyleColor(ImGuiCol.Text, color!.Value);
+		using var _ = ImRaii.PushColor(ImGuiCol.Text, color ?? 0xFFFFFFFF /* White */, color.HasValue);
+		using var __ = ImRaii.PushFont(UiBuilder.IconFont);
 		
-		ImGui.PushFont(UiBuilder.IconFont);
 		ImGui.Text(icon.ToIconString());
-		ImGui.PopFont();
-
-		if (hasColor) ImGui.PopStyleColor();
 	}
 
 	// TODO: Document
 	public static Vector2 CalcIconSize(FontAwesomeIcon icon) {
-		ImGui.PushFont(UiBuilder.IconFont);
+		using var _ = ImRaii.PushFont(UiBuilder.IconFont);
 		var result = ImGui.CalcTextSize(icon.ToIconString());
-		ImGui.PopFont();
+
 		return result;
 	}
 }
