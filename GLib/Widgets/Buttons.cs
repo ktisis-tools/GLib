@@ -16,14 +16,9 @@ public static class Buttons {
 			size = new Vector2(newSize, newSize);
 		}
 		bool ret;
-		if (iconColor != null) {
-			ImGui.PushStyleColor(ImGuiCol.Text, iconColor!.Value);
-		}
 		using (ImRaii.PushFont(UiBuilder.IconFont)) {
+			using var _ = iconColor != null ? ImRaii.PushColor(ImGuiCol.Text, iconColor!.Value) : null;
 			ret = ImGui.Button(icon.ToIconString(), size.Value);
-		}
-		if (iconColor != null) {
-			ImGui.PopStyleColor();
 		}
 		return ret;
 	}
