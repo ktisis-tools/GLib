@@ -139,7 +139,7 @@ public class ListBox<T> {
 
 		var index = start;
 		foreach (var item in enumerable) {
-			using var _ = new ImRaii.Id().Push(index);
+			using var _ = new ImRaii.IdDisposable().Push(index);
 			
 			var isFocus = index == this.ActiveIndex;
 			var activate = this._drawItem(item, isFocus);
