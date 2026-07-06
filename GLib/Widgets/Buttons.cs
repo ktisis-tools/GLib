@@ -50,7 +50,7 @@ public static class Buttons {
 		using (ImRaii.Group()) {
 			using (ImRaii.PushFont(UiBuilder.IconFont)) {
 				using var _ = iconColor != null ? ImRaii.PushColor(ImGuiCol.Text, iconColor!.Value) : null;
-				ret = ImGui.Button("##", size: size.Value);
+				ret = ImGui.Button($"##KtisisDropdownButton_{icon.ToString()}", size: size.Value);
 
 				// draw icon
 				ImGui.SameLine();
