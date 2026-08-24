@@ -40,6 +40,13 @@ public abstract class ContextMenuNodeBuilder<T, TBuilder>
 
 	public TBuilder Separator()
 		=> this.AddNode(new ContextMenu.Separator());
+
+	public TBuilder WithDisabled(Func<bool> condition) {
+		var node = this.Nodes[^1];
+		if (node == null) throw new NullReferenceException("Nodes has not been populated");
+		this.Nodes[^1] = new ContextMenu.Disabled(node, condition);
+		return (TBuilder)this;
+	}
 	
 	public abstract T Build(string id);
 }
