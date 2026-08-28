@@ -128,6 +128,21 @@ public class ContextMenu : IPopup {
 		}
 	}
 
+	internal class Disabled : IContextMenuNode {
+		private readonly IContextMenuNode Node;
+		private readonly Func<bool> Condition;
+
+		public Disabled(IContextMenuNode node, Func<bool> condition) {
+			this.Node = node;
+			this.Condition = condition;
+		}
+
+		public void Draw() {
+			using var _ = ImRaii.Disabled(this.Condition());
+			this.Node.Draw();
+		}
+	}
+
 	internal class Separator : IContextMenuNode {
 		public void Draw() => ImGui.Separator();
 	}
